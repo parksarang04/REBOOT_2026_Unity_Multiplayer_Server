@@ -8,6 +8,10 @@ public class SimplePlayer : NetworkBehaviour
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotateSpeed = 10f;
 
+    [Header("Bullet")]
+    [SerializeField] private NetworkPrefabRef bulletPrefab;
+    [SerializeField] private Transform firePoint;
+
     /*Fusion 버전의 네트워크 업데이트 함수
      Unity의 업데이트 대신 쓴다.*/
     public override void FixedUpdateNetwork()
@@ -32,5 +36,30 @@ public class SimplePlayer : NetworkBehaviour
                 );
             }
         }
+
+        // 발사
+        if (inputData.buttons.IsSet((int)FusionBootstrap.InputButton.Fire))
+        {
+            Fire();
+        }
+    }
+
+    private void Fire()
+    {
+        if (!Object.HasInputAuthority)
+            return;
+
+        Vector3 spawnPos = firePoint != null
+            ? firePoint.position
+            : transform.position + transform.forward + Vector3.up * 0.5f;
+
+        Quaternion spawnRot = transform.rotation;
+
+        Runner.Spawn(
+            bulletPrefab,
+            spawnPos,
+            spawnRot,
+            Object.InputAuthority
+        );
     }
 }
